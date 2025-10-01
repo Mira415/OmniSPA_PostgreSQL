@@ -130,8 +130,8 @@ class SpaImage(db.Model):
     __tablename__ = 'spa_images'
     
     id = db.Column(db.Integer, primary_key=True)
-    filename = db.Column(db.String(100), nullable=False)
-    filepath = db.Column(db.String(200), nullable=False)
+    filename = db.Column(db.Text, nullable=False)
+    filepath = db.Column(db.Text, nullable=False)
     is_primary = db.Column(db.Boolean, default=False, nullable=False)
     caption = db.Column(db.String(255))
     spa_id = db.Column(db.Integer, db.ForeignKey('spas.id', ondelete='CASCADE'), nullable=False)
@@ -214,7 +214,7 @@ class User(db.Model, UserMixin):
     
     # Relationships
     favorites = db.relationship('Favorite', backref='user', cascade='all, delete-orphan')
-    reviews = db.relationship('Review', backref='user', cascade='all, delete-orphan')
+    # reviews = db.relationship('Review', backref='user', cascade='all, delete-orphan')
     
     def set_password(self, password):
         """Sets password"""
@@ -254,7 +254,8 @@ class Review(db.Model):
     __tablename__ = 'reviews'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('owners.id'), nullable=True)
     spa_id = db.Column(db.Integer, db.ForeignKey('spas.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text, nullable=False)
@@ -262,7 +263,9 @@ class Review(db.Model):
         db.DateTime(timezone=True), 
         default=lambda: datetime.now(UTC_PLUS_4)
     )
-    
+    # Relationships
+    user = db.relationship('User', backref='user_reviews', lazy=True)
+    owner = db.relationship('Owner', backref='owner_reviews', lazy=True)
     images = db.relationship('ReviewImage', backref='review', cascade='all, delete-orphan')
     # Check ratings
     __table_args__ = (
